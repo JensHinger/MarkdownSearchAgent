@@ -17,24 +17,21 @@ def get_files_in_folder(keyword: str, path: str) -> list[str]:
     relevant_files = []
 
     directory_contents = os.listdir(path)
-
     for file_name in directory_contents:
-
         if os.path.isfile(path + file_name) and file_name[0] != ".":
             # Load file contents
             file = open(path+file_name, "r")
             file_contents = file.read()
 
             prompt = f'''
-                Respond with only "yes" or "no", do not add any additional information.
-                Does the file {file_name} or its content {file_contents} relate to the keyword {keyword}?
+                Respond with only one word "yes" or "no", do not add any additional information.
+                Does the file {file_name} or its content {file_contents} relate or contain the keyword {keyword}?
             '''
 
             res = ollama.chat(
                 model=FILE_FOLDER_JUDGE,
                 messages=[{"role": "user", "content": prompt}]
             )
-
             if "Yes" in res["message"]["content"]:
                 relevant_files.append(path + file_name)
 
@@ -50,18 +47,21 @@ def get_folders(keyword: str, path: str) -> list[str]:
         if os.path.isdir(path + dir_name) and dir_name[0] != ".":
 
             prompt = f'''
-                Respond only with "yes" or "no", do not add any additional information.
-                Is the folder name {dir_name} in any way related to the keyword {keyword}?
-                This could for example be that the keyword is a sub field of {dir_name} 
-                or that the two topics are roughly related.
+                Respond only with one word "yes" or "no", do not add any additional information.
+                Does the folder name {dir_name} relate to the keyword {keyword}?
+                This relation could be that the keyword is a sub field of {dir_name} 
+                or that the one of the topic build upon the other.
             '''
 
             res = ollama.chat(
                 model= FILE_FOLDER_JUDGE,
                 messages=[{"role": "user", "content": prompt}]
             )
-
             if "Yes" in res["message"]["content"]:
-                relevant_folders.append(path + dir_name)
+                relevant_folders.append(path + dir_name + "/")
 
     return relevant_folders if relevant_folders else ["None"]
+
+if __name__ == "__main__":
+    get_folders("wavelets", "E:/KnowledgeVault/")
+    get_files_in_folder("wavelets", "E:/KnowledgeVault/Maths/")
